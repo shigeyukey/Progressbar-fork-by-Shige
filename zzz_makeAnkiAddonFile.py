@@ -3,7 +3,7 @@ import zipfile
 from datetime import datetime
 
 
-ADDON_NAME ="🟢"
+ADDON_NAME ="Progressbar fork by Shige"
 
 
 def create_ankiaddon():

@@ -482,3 +482,11 @@ def after_change_shige_settings(state: str) -> None:
 
     updateCountsForAllDecks(True)
     updatePB()
+    hide_progressbar()
+
+def hide_progressbar(*args,**kwargs):
+    global progressBar_2
+    config = mw.addonManager.getConfig(__name__)
+    progressBar_2.setVisible(not config.get("hide_Progressbar", False))
+
+gui_hooks.main_window_did_init.append(hide_progressbar)

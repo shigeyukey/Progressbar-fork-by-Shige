@@ -81,6 +81,7 @@ class Shige_Addon_Config(QDialog):
 
         self.includeNew = config["includeNew"]
 
+        self.hide_Progressbar = config.get("hide_Progressbar", False)
 
 
         addon_path = dirname(__file__)
@@ -162,7 +163,8 @@ class Shige_Addon_Config(QDialog):
         self.showNumber_label = self.create_checkbox( "Show Number", "showNumber")
         self.includeNew
         self.includeNew_label =  self.create_checkbox( "Include New Cards", "includeNew")
-
+        self.hide_Progressbar
+        self.hide_Progressbar_label =  self.create_checkbox("Hide Progressbar", "hide_Progressbar")
 
 
         # layout.addWidget(self.patreon_label)
@@ -227,6 +229,7 @@ class Shige_Addon_Config(QDialog):
         layout.addWidget(self.maxWidth_label)
         self.add_widget_with_spacing(layout, self.maxWidth_spinbox)
 
+        layout.addWidget(self.hide_Progressbar_label)
 
         layout.addWidget(self.create_separator())#-------------
         need_restart_label = QLabel("These settings require a restart of Anki.")
@@ -578,6 +581,8 @@ class Shige_Addon_Config(QDialog):
 
         config["progressbarType"] = self.progressbarType
         config["includeNew"] = self.includeNew
+        
+        config["hide_Progressbar"] = self.hide_Progressbar
 
         mw.addonManager.writeConfig(__name__, config)
 

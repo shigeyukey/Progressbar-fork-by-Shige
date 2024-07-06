@@ -3,7 +3,7 @@
 
 
 # <a href="https://www.patreon.com/Shigeyuki">Patreon : Shigeyuki  Add-ons for gamification</a>
-
+from ..shige_pop.popup_config import PATRONS_LIST
 
 def more_info_text(addon_name, addon_code):
     more_info = """
@@ -51,8 +51,27 @@ def more_info_text(addon_name, addon_code):
         <br>
         &bull; <a href="https://github.com/shigeyukey/my_addons/issues">🐱Github : issues</a><br>
         <br>
+        <br>
+        Anki Add-on: Progress Bar<br>
+        Copyright:<br>
+                    (c) Unknown author (nest0r/Ja-Dark?) 2017<br>
+                    (c) SebastienGllmt 2017 <https://github.com/SebastienGllmt/><br>
+                    (c) Glutanimate 2017-2018 <https://glutanimate.com/><br>
+                    (c) liuzikai 2018-2020 <https://github.com/liuzikai><br>
+                    (c) BluMist 2022 <https://github.com/BluMist><br>
+                    (c) Unknown author 2023<br>
+                    (c) Shigeyuki 2024 <https://www.patreon.com/Shigeyuki><br>
+        License: GNU AGPLv3 or later <https://www.gnu.org/licenses/agpl.html><br>
+        <br>
+        <br>
+        [ Patreon ] Special thanks<br>
+        Without the support of my Patrons, I would never have been<br>
+        able to develop this. Thank you very much!🙏<br>
+        <br>
+        {patreon}
 
-        """.format(addon=addon_name, addon_code=addon_code)
+
+        """.format(addon=addon_name, addon_code=addon_code, patreon=PATRONS_LIST)
     return more_info
 
 
