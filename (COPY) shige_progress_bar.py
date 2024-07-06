@@ -459,26 +459,3 @@ def showQuestionCallBack(*args,**kwargs) -> None:
 
 gui_hooks.state_did_change.append(afterStateChangeCallBack)
 gui_hooks.reviewer_did_show_question.append(showQuestionCallBack)
-
-
-def after_change_shige_settings(state: str) -> None:
-    global currDID
-    did_confing_change = didConfigChange()
-
-    if state == "resetRequired":
-        if scrollingBarWhenEditing:
-            setScrollingPB()
-        return
-    elif state == "deckBrowser":
-        if not progressBar_2 or did_confing_change:
-            initPB()
-            updateCountsForAllDecks(True)
-        currDID = None
-    elif state == "profileManager":
-        return
-    else:  # "overview" or "review"
-        initPB()
-        currDID = mw.col.decks.current()['id']
-
-    updateCountsForAllDecks(True)
-    updatePB()

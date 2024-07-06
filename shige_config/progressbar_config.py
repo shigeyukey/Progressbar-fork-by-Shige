@@ -14,7 +14,7 @@ DEBUG_MODE = True
 IS_RATE_THIS = "is_rate_this"
 CHANGE_LOG_DAY = "is_change_log_2024_04_05"
 
-THE_ADDON_NAME = "Progress bar (Fork for 23 by Shige)"
+THE_ADDON_NAME = "Progress bar (Fork by Shige)"
 SHORT_ADDON_NAME = "Progress bar"
 
 BANNER_WIDTH = 450
@@ -59,6 +59,7 @@ Thank you!
 class Shige_Addon_Config(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.changes_detected = False
 
         config = mw.addonManager.getConfig(__name__)
 
@@ -128,6 +129,14 @@ class Shige_Addon_Config(QDialog):
         #-----------------------------
         # self.overview_zoom_label,self.overview_zoom_spinbox = self.create_spinbox(
         # "[ overview zoom ]", 0.1, 5, self.overview_zoom, 70, 1, 0.1,"overview_zoom")
+
+        layout.addWidget(self.create_separator())#-------------
+        home_change_label = QLabel("These settings can be quickly changed.")
+        home_change_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(home_change_label)
+        layout.addWidget(self.create_separator())#-------------
+
+
 
         self.borderRadius # 0
         self.borderRadius_label,self.borderRadius_spinbox  = self.create_spinbox(
@@ -218,12 +227,17 @@ class Shige_Addon_Config(QDialog):
         layout.addWidget(self.maxWidth_label)
         self.add_widget_with_spacing(layout, self.maxWidth_spinbox)
 
+
+        layout.addWidget(self.create_separator())#-------------
+        need_restart_label = QLabel("These settings require a restart of Anki.")
+        need_restart_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(need_restart_label)
         layout.addWidget(self.create_separator())#-------------
 
         # ------ ﾗｼﾞｵﾎﾞﾀﾝB ----------------------
         layout.addWidget(QLabel("[ Calculation Method ]"))
-        button_dict = {"Each deck (Reset after reboot)": "type_A",
-                            "All decks (Beta : Not reset after reboot)": "type_B"
+        button_dict = {"Each deck (Restarting Anki will reset the card counts)": "type_A",
+                            "All decks (Beta : Card counts are not reset after restarting Anki)": "type_B"
                             }
         self.progressbarType
         radio_attr = "progressbarType"
@@ -232,13 +246,13 @@ class Shige_Addon_Config(QDialog):
 
         layout.addWidget(self.create_separator())#-------------
         layout.addWidget(self.includeNew_label)
-        layout.addWidget(self.create_separator())#-------------
-        text_01 = QLabel("- Right click on progress bar to open settings.")
-        text_01.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        layout.addWidget(text_01)
-        text_02 = QLabel("- Settings will take effect after restarting Anki.")
-        text_02.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        layout.addWidget(text_02)
+        # layout.addWidget(self.create_separator())#-------------
+        # text_01 = QLabel("- Right click on progress bar to open settings.")
+        # text_01.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        # layout.addWidget(text_01)
+        # text_02 = QLabel("- Settings will take effect after restarting Anki.")
+        # text_02.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        # layout.addWidget(text_02)
 
         # layout.addWidget(self.review_zoom_label)
         # self.add_widget_with_spacing(layout,self.review_zoom_spinbox)
@@ -539,8 +553,11 @@ class Shige_Addon_Config(QDialog):
 
     def handle_button_clicked(self):
         self.save_config_fontfamiles()
-        self.hide()
-        check_restart_anki()
+        from ..shige_progress_bar import after_change_shige_settings
+        after_change_shige_settings(mw.state)
+        if self.changes_detected:
+            check_restart_anki()
+        self.close()
 
 
 
@@ -554,6 +571,11 @@ class Shige_Addon_Config(QDialog):
         config["foregroundColor"] = self.foregroundColor
         config["borderRadius"] = self.borderRadius
         config["maxWidth"] = str(self.maxWidth)
+
+        if (config.get("progressbarType", "type_A") != self.progressbarType
+            or config.get("includeNew", True) != self.includeNew):
+            self.changes_detected = True
+
         config["progressbarType"] = self.progressbarType
         config["includeNew"] = self.includeNew
 

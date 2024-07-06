@@ -17,7 +17,7 @@ from aqt.utils import qconnect
 def add_config_button():
     mw.addonManager.setConfigAction(__name__, SetProgressbarConfig)
     # ----- ﾒﾆｭｰﾊﾞｰに追加 -----
-    addon_Action = QAction("Progress bar (Fork for 23 by Shige) Settings", mw)
+    addon_Action = QAction("Progress bar (Fork by Shige) Settings", mw)
     qconnect(addon_Action.triggered, SetProgressbarConfig)
     mw.form.menuTools.addAction(addon_Action)
 
