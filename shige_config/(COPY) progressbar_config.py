@@ -222,42 +222,38 @@ class Shige_Addon_Config(QDialog):
         layout.addWidget(self.create_separator())#-------------
         # 🟢
         layout02 = QVBoxLayout()
-        layout02.addWidget(self.create_separator())#-------------
-        home_change_label_02 = QLabel("These settings can be quickly changed.")
-        home_change_label_02.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout02.addWidget(home_change_label_02)
-        layout02.addWidget(self.create_separator())#-------------
 
 
-        layout02.addWidget(self.borderRadius_label)
-        self.add_widget_with_spacing(layout02, self.borderRadius_spinbox)
 
-        layout02.addWidget(self.maxWidth_label)
-        self.add_widget_with_spacing(layout02, self.maxWidth_spinbox)
+        layout.addWidget(self.borderRadius_label)
+        self.add_widget_with_spacing(layout, self.borderRadius_spinbox)
 
-        layout02.addWidget(self.hide_Progressbar_label)
+        layout.addWidget(self.maxWidth_label)
+        self.add_widget_with_spacing(layout, self.maxWidth_spinbox)
+
+        layout.addWidget(self.hide_Progressbar_label)
+
+        layout.addWidget(self.create_separator())#-------------
+        need_restart_label = QLabel("These settings require a restart of Anki.")
+        need_restart_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(need_restart_label)
+        layout.addWidget(self.create_separator())#-------------
 
         # ------ ﾗｼﾞｵﾎﾞﾀﾝB ----------------------
         # 🟢
         layout03 = QVBoxLayout()
-        layout03.addWidget(self.create_separator())#-------------
-        need_restart_label = QLabel("These settings require a restart of Anki.")
-        need_restart_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout03.addWidget(need_restart_label)
-        layout03.addWidget(self.create_separator())#-------------
 
-
-        layout03.addWidget(QLabel("[ Calculation Method ]"))
+        layout.addWidget(QLabel("[ Calculation Method ]"))
         button_dict = {"Each deck (Restarting Anki will reset the card counts)": "type_A",
                             "All decks (Beta : Card counts are not reset after restarting Anki)": "type_B"
                             }
         self.progressbarType
         radio_attr = "progressbarType"
-        layout03.addLayout(self.create_radio_buttons(button_dict, radio_attr))
+        layout.addLayout(self.create_radio_buttons(button_dict, radio_attr))
         # --------------------------------------------
 
-        layout03.addWidget(self.create_separator())#-------------
-        layout03.addWidget(self.includeNew_label)
+        layout.addWidget(self.create_separator())#-------------
+        layout.addWidget(self.includeNew_label)
         # layout.addWidget(self.create_separator())#-------------
         # text_01 = QLabel("- Right click on progress bar to open settings.")
         # text_01.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -284,14 +280,6 @@ class Shige_Addon_Config(QDialog):
         tab_theme = QWidget()
         layout.addStretch(1)
         tab_theme.setLayout(layout)
-
-        tab_option_02 = QWidget()
-        layout02.addStretch(1)
-        tab_option_02.setLayout(layout02)
-
-        tab_option_03 = QWidget()
-        layout03.addStretch(1)
-        tab_option_03.setLayout(layout03)
 
         # --------------------------
 
@@ -323,8 +311,8 @@ class Shige_Addon_Config(QDialog):
 
 
         tab_widget.addTab(tab_theme,"Option1")
-        tab_widget.addTab(tab_option_02,"Option2")
-        tab_widget.addTab(tab_option_03,"Option3")
+        tab_widget.addTab(tab_option2,"Option2")
+        tab_widget.addTab(tab_option3,"Option3")
         tab_widget.addTab(tab_moreInfo, "MoreInfo")
 
         # --------------------------
