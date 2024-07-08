@@ -1,4 +1,5 @@
 
+import random
 import re
 from aqt import QButtonGroup, QCheckBox, QColor, QColorDialog, QDialog, QDoubleSpinBox, QFrame, QHBoxLayout, QIcon, QLineEdit, QRadioButton, QSize, QStyle, QTabWidget, QTextBrowser, QWidget,Qt
 from aqt import QVBoxLayout, QLabel, QPushButton
@@ -491,6 +492,9 @@ class Shige_Addon_Config(QDialog):
 
     # --- cancel -------------
     def cancelSelect(self):
+        emoticons = [":-/", ":-O", ":-|"]
+        selected_emoticon = random.choice(emoticons)
+        tooltip("Canceled " + selected_emoticon)
         self.close()
     #-----------------------------
 
@@ -579,6 +583,10 @@ class Shige_Addon_Config(QDialog):
         after_change_shige_settings(mw.state)
         if self.changes_detected:
             check_restart_anki()
+
+        emoticons = [":-)", ":-D", ";-)"]
+        selected_emoticon = random.choice(emoticons)
+        tooltip("Changed setting " + selected_emoticon)
         self.close()
 
 
@@ -606,9 +614,9 @@ class Shige_Addon_Config(QDialog):
         mw.addonManager.writeConfig(__name__, config)
 
         # --------------show message box-----------------
-        try:some_restart_anki =tr.preferences_some_settings_will_take_effect_after()
-        except:some_restart_anki ="Some settings will take effect after you restart Anki."
-        tooltip(some_restart_anki)
+        # try:some_restart_anki =tr.preferences_some_settings_will_take_effect_after()
+        # except:some_restart_anki ="Some settings will take effect after you restart Anki."
+        # tooltip(some_restart_anki)
         # --------------show message box-----------------
 
 
