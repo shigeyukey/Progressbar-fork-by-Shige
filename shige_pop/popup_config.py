@@ -6,13 +6,12 @@ from aqt import mw
 from os.path import join, dirname
 from aqt import QPixmap,gui_hooks
 from aqt.utils import openLink
-
+from ..shige_config.change_log import OLD_CHANGE_LOG
+from ..shige_config.patrons_list import PATRONS_LIST
 
 CHANGE_LOG = "is_change_log"
-CHANGE_LOG_DAY = "2024-07-07"
+CHANGE_LOG_DAY = "2024-08-14"
 
-
-PATRONS_LIST = "Arthur Bookstein, Haruka, Luis Alberto, Letona Quispe, Haley Schwarz, Douglas Beeman, GP O'Byrne, Tobias Klös, Oleksandr Pashchenko, Alba Grecia Suárez Recuay, Renoaldo Costa Silva Junior, Felipe Dias, 07951350313540, Ernest Chan, Corentin, Yitzhak Bar Geva, 龍星 武田, Muneeb Khan, Kurt Grabow, Daniel Kohl-Fink, Alex D, Hikori, Gabriel Vinicio Guedes, Ansel Ng, Tim, Maik C., Ricardo Escobar, Daniel Valcárcel Málaga, Lerner Alcala, Blake, Ketan Pal, Kyle Mondlak, Natalia Ostaszewska, Lily, Wa sup, Victor Evangelista, NamelessGO, Jonny MacEachern, Moritz Bluhm, Martin Gerlach, Knightwalker, Lukas Hammerschmidt, Fahim Shaik, as cam, Richard Fernandez, K Chuong Dang, Jason Liu, Hashem Hanaktah, Justin Skariah, Marli, Ella Schultz, Ali Abid, Siva Garapati, Nitin Chetla, hubert tuyishime, J, Dan S, Salman Majid, C, Maduka Gunasinghe, Marcin Skic, Andreas China, Lê Hoàng Phúc, anonymous, Jesse Asiedu, Chanho Youne, Dhenis Ferisco, Wave, ElAnki, oiuhroiehg, Foxy_null, Tae Lee, Ashok Rajpurohit, WolfsForever, Rogelio Rojas, Bunion Bandit, César Flores"
 
 POKEBALL_PATH = r"popup_icon.png"
 
@@ -25,7 +24,7 @@ GITHUB_URL = "https://github.com/shigeyukey/my_addons/issues"
 # popup-size
 # mini-pupup
 SIZE_MINI_WIDTH = 450
-SIZE_MINI_HEIGHT = 350
+SIZE_MINI_HEIGHT = 300
 
 # Large-popup
 SIZE_BIG_WIDTH = 700
@@ -54,14 +53,22 @@ POPUP_PNG = r"popup_shige.png"
 
 
 NEW_FEATURE = """
-[1] Downgrade and Re-update
-    - Removal of evaluation popups
-    - Re-added options window
-    - Re-added card calculation method
-    - Update without restart
-    - Click on bar to open options
-    - Option to hide bar
+[1] Enhanced functions
+    - add option to progressbar on bottom.
+        (option2 tab)
+    - add addons tab.
 """
+
+
+SPECIAL_THANKS = """
+[ Patreon ] Special thanks
+Without the support of my Patrons, I would never have been
+able to develop this. Thank you very much!🙏
+
+{patreon}
+""".format(patreon=PATRONS_LIST)
+
+
 
 CHANGE_LOG_TEXT = """\
 [ Change log : {addon} ]
@@ -72,8 +79,17 @@ I updated this Add-on.
 {new_feature}
 If you like this add-on, please support
 my volunteer development on Patreon. Thank you!
-""".format(addon=SHORT_ADDON_NAME,new_feature=NEW_FEATURE)
 
+
+{special_thanks}
+
+[Change log]
+{old_change_log}
+""".format( addon=SHORT_ADDON_NAME,
+            new_feature=NEW_FEATURE,
+            special_thanks=SPECIAL_THANKS,
+            old_change_log=OLD_CHANGE_LOG
+            )
 
 
 CHANGE_LOG_TEXT_B = """\
@@ -92,12 +108,10 @@ my volunteer development on Patreon. Thank you!
 Copyright (C) 🟢
 (c) 2024 Shigeyuki  <https://github.com/shigeyukey>
 
-[ Patreon ] Special thanks
-Without the support of my Patrons, I would never have been
-able to develop this. Thank you very much!🙏
+
 
 {patreon}
-""".format(addon=THE_ADDON_NAME, patreon=PATRONS_LIST)
+""".format(addon=THE_ADDON_NAME, patreon=SPECIAL_THANKS)
 
 
 

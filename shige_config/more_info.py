@@ -3,7 +3,14 @@
 
 
 # <a href="https://www.patreon.com/Shigeyuki">Patreon : Shigeyuki  Add-ons for gamification</a>
+from ..shige_config.change_log import OLD_CHANGE_LOG
 from ..shige_pop.popup_config import PATRONS_LIST
+import os
+
+old_change_log = OLD_CHANGE_LOG.replace("\n", "<br>")
+addon_path = os.path.dirname(__file__)
+rate_this_path = os.path.join(addon_path, "rate_this_addon.jpg")
+
 
 def more_info_text(addon_name, addon_code):
     more_info = """
@@ -37,19 +44,31 @@ def more_info_text(addon_name, addon_code):
         </ul>
 
 
-        <p><b>[ 🛎️Add-on Support ]</b></p>
+        <p><b>[ 🚨Help & Report ]</b></p>
         If you have any problems or requests, feel free to request them. Thank you!<br>
         <br>
         <a href="https://ankiweb.net/shared/info/{addon_code}">\
-        &bull; {addon}</a><br>
+        &bull;Add-on page :  {addon}</a><br>
         URL : <textarea readonly>https://ankiweb.net/shared/info/{addon_code}</textarea><br>
         Add-on code : <textarea readonly>{addon_code}</textarea> <br>
         <br>
-        &bull; <a href="https://ankiweb.net/shared/review/{addon_code}">👍️RateThis : AnkiWeb</a><br>
+        &bull; <a href="https://ankiweb.net/shared/review/{addon_code}">👍️RateThis : AnkiWeb<br>
+        <img src="{rate_this_path}" alt="rate this addon"></a><br>
+        If you rate and recommend it, I will receive a notice and my tedious and \
+        sleepy add-ons volunteer work will become more enjoyable and exciting.\
+        (This add-on is developed by free volunteer work!)
+        <br>
         <br>
         &bull; <a href="https://www.reddit.com/user/Shige-yuki">👨‍🚀Reddit : u/Shige-yuki </a><br>
+        You can request me to repair broken add-ons.<br>
+        <br>
         <br>
         &bull; <a href="https://github.com/shigeyukey/my_addons/issues">🐱Github : issues</a><br>
+        Makes it easier to track problems.<br>
+        <br>
+        <br>
+        &bull; <a href="https://www.patreon.com/Shigeyuki">💖Patreon (DM)</a><br>
+        Response will be prioritized.<br>
         <br>
         <br>
         Anki Add-on: Progress Bar<br>
@@ -69,9 +88,17 @@ def more_info_text(addon_name, addon_code):
         able to develop this. Thank you very much!🙏<br>
         <br>
         {patreon}
-
-
-        """.format(addon=addon_name, addon_code=addon_code, patreon=PATRONS_LIST)
+        <br>
+        <br>
+        [ Change log ]<br>
+        {change_log}
+        <br>
+        <br>
+        """.format( addon=addon_name,
+                    addon_code=addon_code,
+                    patreon=PATRONS_LIST,
+                    change_log=old_change_log,
+                    rate_this_path=rate_this_path)
     return more_info
 
 

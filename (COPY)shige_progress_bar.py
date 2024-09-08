@@ -74,11 +74,7 @@ def getConfig(arg, default=""):
     else:
         return default
 
-def getConfigDockArea():
-    config = mw.addonManager.getConfig(__name__)
-    if config and config.get("show_progress_bar_on_bottom", False):
-        return Qt.DockWidgetArea.BottomDockWidgetArea
-    return Qt.DockWidgetArea.TopDockWidgetArea
+
 
 # ｶｰﾄﾞの種類
 includeNew = getConfig("includeNew", True)
@@ -104,6 +100,7 @@ forceForward = False
 ### PROGRESS BAR ###
 
 
+
 TYPE_A = "type_A"
 TYPE_B = "type_B"
 PB_TYPE  = getConfig("progressbarType", "type_A")
@@ -124,12 +121,8 @@ orientationHV = Qt.Orientation.Horizontal
 
 invertTF = False # 右から左
 
-
-
-
 # dockArea = Qt.DockWidgetArea.TopDockWidgetArea
-# dockArea = Qt.DockWidgetArea.BottomDockWidgetArea
-# dockArea = getConfigDockArea()
+dockArea = Qt.DockWidgetArea.BottomDockWidgetArea
 
 pbStyle = ""
 '''pbStyle options (insert a quoted word above):
@@ -266,19 +259,15 @@ def initPB() -> None:
         progressBar_2.setStyle(pbdStyle)
         progressBar_2.setPalette(palette)
 
-dockWidgetPB = None
-
 def _dock(pb: QProgressBar) -> QDockWidget:
-    global dockWidgetPB
-    dockWidgetPB = QDockWidget()
+    dock = QDockWidget()
     tWidget = QWidget()
-    dockWidgetPB.setWidget(pb)
-    dockWidgetPB.setTitleBarWidget(tWidget)
-    dockArea = getConfigDockArea()
+    dock.setWidget(pb)
+    dock.setTitleBarWidget(tWidget)
 
     existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == dockArea]
 
-    mw.addDockWidget(dockArea, dockWidgetPB)
+    mw.addDockWidget(dockArea, dock)
 
     if len(existing_widgets) > 0:
         mw.setDockNestingEnabled(True)
@@ -287,38 +276,31 @@ def _dock(pb: QProgressBar) -> QDockWidget:
             stack_method = Qt.Orientation.Vertical
         if dockArea == Qt.DockWidgetArea.LeftDockWidgetArea or dockArea == Qt.DockWidgetArea.RightDockWidgetArea:
             stack_method = Qt.Orientation.Horizontal
-        mw.splitDockWidget(existing_widgets[0], dockWidgetPB, stack_method)
+        mw.splitDockWidget(existing_widgets[0], dock, stack_method)
 
     if qbr > 0 or pbdStyle is not None:
         mw.setPalette(palette)
     mw.web.setFocus()
-    return dockWidgetPB
+    return dock
 
 
-def check_dock_widget_area():
-    global dockWidgetPB
-    if isinstance(dockWidgetPB, QDockWidget):
-        current_area = mw.dockWidgetArea(dockWidgetPB)
-        new_dockArea = getConfigDockArea()
+def change_dock_widget_area(dock: QDockWidget, new_dockArea: Qt.DockWidgetArea):
+    current_area = mw.dockWidgetArea(dock)
 
-        if current_area != new_dockArea:
-            mw.removeDockWidget(dockWidgetPB)
+    if current_area != new_dockArea:
+        mw.removeDockWidget(dock)
+        mw.addDockWidget(new_dockArea, dock)
 
-            existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == new_dockArea]
-            # existing_widgets = [widget for widget in mw.findChildren(QWidget) if mw.dockWidgetArea(widget) == new_dockArea]
+        existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == new_dockArea]
 
-            mw.addDockWidget(new_dockArea, dockWidgetPB)
-            dockWidgetPB.show()
+        if len(existing_widgets) > 0:
+            mw.setDockNestingEnabled(True)
 
-            print(existing_widgets)
-            if len(existing_widgets) > 0:
-                mw.setDockNestingEnabled(True)
-
-                if new_dockArea in [Qt.DockWidgetArea.TopDockWidgetArea, Qt.DockWidgetArea.BottomDockWidgetArea]:
-                    stack_method = Qt.Orientation.Vertical
-                elif new_dockArea in [Qt.DockWidgetArea.LeftDockWidgetArea, Qt.DockWidgetArea.RightDockWidgetArea]:
-                    stack_method = Qt.Orientation.Horizontal
-                mw.splitDockWidget(existing_widgets[0], dockWidgetPB, stack_method)
+            if new_dockArea in [Qt.DockWidgetArea.TopDockWidgetArea, Qt.DockWidgetArea.BottomDockWidgetArea]:
+                stack_method = Qt.Orientation.Vertical
+            elif new_dockArea in [Qt.DockWidgetArea.LeftDockWidgetArea, Qt.DockWidgetArea.RightDockWidgetArea]:
+                stack_method = Qt.Orientation.Horizontal
+            mw.splitDockWidget(existing_widgets[0], dock, stack_method)
 
 
 
@@ -521,7 +503,6 @@ def after_change_shige_settings(state: str) -> None:
     updateCountsForAllDecks(True)
     updatePB()
     hide_progressbar()
-    check_dock_widget_area()
 
 def hide_progressbar(*args,**kwargs):
     global progressBar_2

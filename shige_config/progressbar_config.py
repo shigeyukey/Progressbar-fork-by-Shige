@@ -9,6 +9,9 @@ from aqt.utils import tr
 from os.path import join, dirname
 from aqt import QPixmap,gui_hooks
 from aqt.utils import openLink
+from .shige_addons import add_shige_addons_tab
+
+WIDGET_HEIGHT = 550
 
 DEBUG_MODE = True
 
@@ -33,6 +36,7 @@ if (isinstance(ADDON_PACKAGE, (int, float))
 RATE_THIS_URL = f"https://ankiweb.net/shared/review/{ADDON_PACKAGE}"
 POPUP_PNG = "popup_shige.png"
 
+#🔴使ってない
 NEW_FEATURE = """
 -[ Progress Bar Settings Window ]
     It can be opened from Tools.
@@ -66,23 +70,19 @@ class Shige_Addon_Config(QDialog):
 
         self.showPercent = config["showPercent"] # false
         self.showNumber = config["showNumber"] # false
-
         self.textColor = config["textColor"] # "aliceblue"
         self.backgroundColor = config["backgroundColor"] # "rgba(0, 0, 0, 0)"
         self.foregroundColor = config["foregroundColor"] # "#3399cc"
-
         self.borderRadius = config["borderRadius"] # 0
-
         value = re.sub(r'\D', '', config["maxWidth"])
         self.maxWidth = min(max(0, int(value)), 50) # "20"
         # self.maxWidth = int(config["maxWidth"]) # "20"
         # self.maxWidth = int(config["maxWidth"].replace('px', '')) if 'px' in config["maxWidth"] else int(config["maxWidth"])
-
         self.progressbarType = config["progressbarType"] # "type_A"
-
         self.includeNew = config["includeNew"]
-
         self.hide_Progressbar = config.get("hide_Progressbar", False)
+        self.show_progress_bar_on_bottom = config.get("show_progress_bar_on_bottom", False)
+
 
 
         addon_path = dirname(__file__)
@@ -166,7 +166,8 @@ class Shige_Addon_Config(QDialog):
         self.includeNew_label =  self.create_checkbox( "Include New Cards", "includeNew")
         self.hide_Progressbar
         self.hide_Progressbar_label =  self.create_checkbox("Hide Progressbar", "hide_Progressbar")
-
+        self.show_progress_bar_on_bottom
+        self.show_progress_bar_on_bottom_label =  self.create_checkbox("Show progress bar on bottom","show_progress_bar_on_bottom")
 
         # layout.addWidget(self.patreon_label)
 
@@ -237,6 +238,7 @@ class Shige_Addon_Config(QDialog):
         self.add_widget_with_spacing(layout02, self.maxWidth_spinbox)
 
         layout02.addWidget(self.hide_Progressbar_label)
+        layout02.addWidget(self.show_progress_bar_on_bottom_label)
 
         # ------ ﾗｼﾞｵﾎﾞﾀﾝB ----------------------
         # 🟢
@@ -327,6 +329,8 @@ class Shige_Addon_Config(QDialog):
         tab_widget.addTab(tab_option_02,"Option2")
         tab_widget.addTab(tab_option_03,"Option3")
         tab_widget.addTab(tab_moreInfo, "MoreInfo")
+        add_shige_addons_tab(self, tab_widget)
+
 
         # --------------------------
 
@@ -348,7 +352,13 @@ class Shige_Addon_Config(QDialog):
         self.setLayout(main_layout)
 
 
+        self.adjust_self_size()
 
+
+    def adjust_self_size(self):
+        min_size = self.layout().minimumSize()
+        # self.resize(min_size.width(), min_size.height())
+        self.resize(min_size.width(), WIDGET_HEIGHT)
 
 
 
@@ -608,8 +618,9 @@ class Shige_Addon_Config(QDialog):
 
         config["progressbarType"] = self.progressbarType
         config["includeNew"] = self.includeNew
-        
         config["hide_Progressbar"] = self.hide_Progressbar
+
+        config["show_progress_bar_on_bottom"] = self.show_progress_bar_on_bottom
 
         mw.addonManager.writeConfig(__name__, config)
 
