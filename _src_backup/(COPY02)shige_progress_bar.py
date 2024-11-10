@@ -60,8 +60,8 @@ class CustomProgressBar(QProgressBar):
     #     except:contextMenu.exec_(QCursor.pos()) #pyQt5
 
     def perform_action1(self):
-        from .shige_config.progressbar_config import SetProgressbarConfig
-        SetProgressbarConfig()
+        from .shige_config.progressbar_config import setProgressbarConfig
+        setProgressbarConfig()
 
 QProgressBar = CustomProgressBar
 
@@ -74,7 +74,11 @@ def getConfig(arg, default=""):
     else:
         return default
 
-
+def getConfigDockArea():
+    config = mw.addonManager.getConfig(__name__)
+    if config and config.get("show_progress_bar_on_bottom", False):
+        return Qt.DockWidgetArea.BottomDockWidgetArea
+    return Qt.DockWidgetArea.TopDockWidgetArea
 
 # ｶｰﾄﾞの種類
 includeNew = getConfig("includeNew", True)
@@ -100,7 +104,6 @@ forceForward = False
 ### PROGRESS BAR ###
 
 
-
 TYPE_A = "type_A"
 TYPE_B = "type_B"
 PB_TYPE  = getConfig("progressbarType", "type_A")
@@ -121,8 +124,12 @@ orientationHV = Qt.Orientation.Horizontal
 
 invertTF = False # 右から左
 
+
+
+
 # dockArea = Qt.DockWidgetArea.TopDockWidgetArea
-dockArea = Qt.DockWidgetArea.BottomDockWidgetArea
+# dockArea = Qt.DockWidgetArea.BottomDockWidgetArea
+# dockArea = getConfigDockArea()
 
 pbStyle = ""
 '''pbStyle options (insert a quoted word above):
@@ -131,6 +138,12 @@ pbStyle = ""
     -- "windowsvista" unfortunately ignores custom colors, due to animation?
     -- Some styles don't reset bar appearance fully on undo. An annoyance.
     -- Themes gallery: http://doc.qt.io/qt-4.8/gallery.html'''
+
+
+change_config = False
+def need_update_config():
+    global change_config
+    change_config = True
 
 def didConfigChange():
     didChange = False
@@ -144,6 +157,12 @@ def didConfigChange():
     global qbr
 
     global maxWidth
+
+    global change_config
+    if change_config:
+        didChange = True
+        change_config = False
+
 
     if showPercent != getConfig("showPercent", False):
         showPercent = getConfig("showPercent", False)
@@ -237,37 +256,66 @@ def initPB() -> None:
     progressBar_2.setInvertedAppearance(invertTF)
     progressBar_2.setOrientation(orientationHV)
     if pbdStyle is None:
-        progressBar_2.setStyleSheet(
-            '''
-                QProgressBar
-                {
-                    text-align:center;
-                    color:%s;
-                    background-color: %s;
-                    border-radius: %dpx;
-                    %s
-                    
-                }
-                QProgressBar::chunk
-                {
-                    background-color: %s;
-                    margin: 0px;
-                    border-radius: %dpx;
-                }
-                ''' % (qtxt, qbg, qbr, restrictSize, qfg, qbr))
+        use_gradation = getConfig("use_gradation", True)
+        if not use_gradation:
+            progressBar_2.setStyleSheet(
+                '''
+                    QProgressBar
+                    {
+                        text-align:center;
+                        color:%s;
+                        background-color: %s;
+                        border-radius: %dpx;
+                        %s
+                    }
+                    QProgressBar::chunk
+                    {
+                        background-color: %s;
+                        margin: 0px;
+                        border-radius: %dpx;
+                    }
+                    ''' % (qtxt, qbg, qbr, restrictSize, qfg, qbr))
+
+        else:
+            qfg_left = getConfig("chunk_color_left", "#3399cc")
+            qfg_center = getConfig("chunk_color_center", "#4cedff")
+            qfg_right = getConfig("chunk_color_right", "#3399cc")
+
+            progressBar_2.setStyleSheet(
+                '''
+                    QProgressBar
+                    {
+                        text-align:center;
+                        color:%s;
+                        background-color: %s;
+                        border-radius: %dpx;
+                        %s
+                    }
+                    QProgressBar::chunk
+                    {
+                        background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 %s, stop: 0.5 %s, stop: 1 %s);
+                        margin: 0px;
+                        border-radius: %dpx;
+                    }
+                    ''' % (qtxt, qbg, qbr, restrictSize, qfg_left, qfg_center, qfg_right, qbr))
+
     else:
         progressBar_2.setStyle(pbdStyle)
         progressBar_2.setPalette(palette)
 
+dockWidgetPB = None
+
 def _dock(pb: QProgressBar) -> QDockWidget:
-    dock = QDockWidget()
+    global dockWidgetPB
+    dockWidgetPB = QDockWidget()
     tWidget = QWidget()
-    dock.setWidget(pb)
-    dock.setTitleBarWidget(tWidget)
+    dockWidgetPB.setWidget(pb)
+    dockWidgetPB.setTitleBarWidget(tWidget)
+    dockArea = getConfigDockArea()
 
     existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == dockArea]
 
-    mw.addDockWidget(dockArea, dock)
+    mw.addDockWidget(dockArea, dockWidgetPB)
 
     if len(existing_widgets) > 0:
         mw.setDockNestingEnabled(True)
@@ -276,31 +324,38 @@ def _dock(pb: QProgressBar) -> QDockWidget:
             stack_method = Qt.Orientation.Vertical
         if dockArea == Qt.DockWidgetArea.LeftDockWidgetArea or dockArea == Qt.DockWidgetArea.RightDockWidgetArea:
             stack_method = Qt.Orientation.Horizontal
-        mw.splitDockWidget(existing_widgets[0], dock, stack_method)
+        mw.splitDockWidget(existing_widgets[0], dockWidgetPB, stack_method)
 
     if qbr > 0 or pbdStyle is not None:
         mw.setPalette(palette)
     mw.web.setFocus()
-    return dock
+    return dockWidgetPB
 
 
-def change_dock_widget_area(dock: QDockWidget, new_dockArea: Qt.DockWidgetArea):
-    current_area = mw.dockWidgetArea(dock)
+def check_dock_widget_area():
+    global dockWidgetPB
+    if isinstance(dockWidgetPB, QDockWidget):
+        current_area = mw.dockWidgetArea(dockWidgetPB)
+        new_dockArea = getConfigDockArea()
 
-    if current_area != new_dockArea:
-        mw.removeDockWidget(dock)
-        mw.addDockWidget(new_dockArea, dock)
+        if current_area != new_dockArea:
+            mw.removeDockWidget(dockWidgetPB)
 
-        existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == new_dockArea]
+            existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == new_dockArea]
+            # existing_widgets = [widget for widget in mw.findChildren(QWidget) if mw.dockWidgetArea(widget) == new_dockArea]
 
-        if len(existing_widgets) > 0:
-            mw.setDockNestingEnabled(True)
+            mw.addDockWidget(new_dockArea, dockWidgetPB)
+            dockWidgetPB.show()
 
-            if new_dockArea in [Qt.DockWidgetArea.TopDockWidgetArea, Qt.DockWidgetArea.BottomDockWidgetArea]:
-                stack_method = Qt.Orientation.Vertical
-            elif new_dockArea in [Qt.DockWidgetArea.LeftDockWidgetArea, Qt.DockWidgetArea.RightDockWidgetArea]:
-                stack_method = Qt.Orientation.Horizontal
-            mw.splitDockWidget(existing_widgets[0], dock, stack_method)
+            print(existing_widgets)
+            if len(existing_widgets) > 0:
+                mw.setDockNestingEnabled(True)
+
+                if new_dockArea in [Qt.DockWidgetArea.TopDockWidgetArea, Qt.DockWidgetArea.BottomDockWidgetArea]:
+                    stack_method = Qt.Orientation.Vertical
+                elif new_dockArea in [Qt.DockWidgetArea.LeftDockWidgetArea, Qt.DockWidgetArea.RightDockWidgetArea]:
+                    stack_method = Qt.Orientation.Horizontal
+                mw.splitDockWidget(existing_widgets[0], dockWidgetPB, stack_method)
 
 
 
@@ -329,12 +384,19 @@ def updatePB_A() -> None:
         progressBar_2.setRange(0, pbMax)
         progressBar_2.setValue(pbValue)
 
+
     if showNumber:
         if showPercent:
             percent = 100 if pbMax == 0 else int(100 * pbValue / pbMax)
             progressBar_2.setFormat("%d / %d (%d%%)" % (pbValue, pbMax, percent))
         else:
             progressBar_2.setFormat("%d / %d" % (pbValue, pbMax))
+
+
+    from .time_left import estimateTimeLeft
+    output += estimateTimeLeft(var_diff)
+    progressBar_2.setFormat(output)
+
 
 
 #----------------------------
@@ -376,6 +438,7 @@ def updatePB_B():
     percent = 100 if pbMax == 0 else (100 * cards / progbarmax)
     percentdiff = (100 - percent)
 
+    output = ""
     if showNumber:
         if showPercent:
             output = f"{cards} ({percent:.0f}%) done"
@@ -383,7 +446,10 @@ def updatePB_B():
         else:
             output = f"{cards} done"
             output += f" / {var_diff:.0f} left"
-        progressBar_2.setFormat(output)
+
+    from .time_left import estimateTimeLeft
+    output += estimateTimeLeft(var_diff)
+    progressBar_2.setFormat(output)
 
 
 #----------------------------
@@ -503,6 +569,7 @@ def after_change_shige_settings(state: str) -> None:
     updateCountsForAllDecks(True)
     updatePB()
     hide_progressbar()
+    check_dock_widget_area()
 
 def hide_progressbar(*args,**kwargs):
     global progressBar_2

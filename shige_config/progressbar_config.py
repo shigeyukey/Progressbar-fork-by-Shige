@@ -84,6 +84,13 @@ class Shige_Addon_Config(QDialog):
         self.show_progress_bar_on_bottom = config.get("show_progress_bar_on_bottom", False)
 
 
+        self.use_gradation = config.get("use_gradation", True)
+        self.chunk_color_left = config.get("chunk_color_left", "#3399cc")
+        self.chunk_color_center = config.get("chunk_color_center", "#4cedff")
+        self.chunk_color_right = config.get("chunk_color_right", "#3399cc")
+
+        self.show_left_time =  config.get("show_left_time", True)
+
 
         addon_path = dirname(__file__)
         self.setWindowIcon(QIcon(join(addon_path, r"icon.png")))
@@ -113,15 +120,28 @@ class Shige_Addon_Config(QDialog):
         button2.clicked.connect(self.hide)
         button2.setFixedWidth(120)
 
+
+        from ..shige_pop.button_manager import mini_button
         if RATE_THIS:
             button3 = QPushButton('👍️RateThis')
             button3.clicked.connect(self.open_rate_this_Link)
-            button3.setFixedWidth(120)
+            mini_button(button3)
+            button3.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
 
         button4 = QPushButton('💖Patreon')
         button4.clicked.connect(self.open_patreon_Link)
-        button4.setFixedWidth(120)
+        mini_button(button4)
+        button4.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+        report_button = QPushButton("🚨Report")
+        report_button.clicked.connect(lambda: openLink("https://shigeyukey.github.io/shige-addons-wiki/progress-bar.html#report"))
+        report_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        mini_button(report_button)
+
+
+
+
 
 
         # ｳｨﾝﾄﾞｳにQFontComboBoxとQLabelとQPushButtonを追加
@@ -169,11 +189,19 @@ class Shige_Addon_Config(QDialog):
         self.show_progress_bar_on_bottom
         self.show_progress_bar_on_bottom_label =  self.create_checkbox("Show progress bar on bottom","show_progress_bar_on_bottom")
 
+        self.show_left_time
+        self.show_left_time_lable = self.create_checkbox("show time left","show_left_time")
+
+
+
         # layout.addWidget(self.patreon_label)
 
-        layout.addWidget(self.showPercent_label)
-        layout.addWidget(self.showNumber_label)
-
+        stats_layout = QHBoxLayout()
+        stats_layout.addWidget(self.showPercent_label)
+        stats_layout.addWidget(self.showNumber_label)
+        stats_layout.addWidget(self.show_left_time_lable)
+        stats_layout.addStretch()
+        layout.addLayout(stats_layout)
 
         layout.addWidget(self.create_separator())#-------------
 
@@ -222,6 +250,29 @@ class Shige_Addon_Config(QDialog):
         layout.addLayout(h3_layout)
 
         layout.addWidget(self.create_separator())#-------------
+
+
+        gra_layout = QHBoxLayout()
+        gradation_label = QLabel("[ Gradient ]")
+        gradation_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        gra_layout.addWidget(gradation_label)
+
+        self.use_gradation
+        self.use_gradation_label = self.create_checkbox( "Use Gradient", "use_gradation")
+        gra_layout.addWidget(self.use_gradation_label)
+
+        gra_layout.addStretch()
+        layout.addLayout(gra_layout)
+
+        self.chunk_color_right
+        self.create_color_button("chunk_color_left", "Left Color", layout)
+        self.chunk_color_center
+        self.create_color_button("chunk_color_center", "Cneter Color", layout)
+        self.chunk_color_left
+        self.create_color_button("chunk_color_right", "Right Color", layout)
+
+
+
         # 🟢
         layout02 = QVBoxLayout()
         layout02.addWidget(self.create_separator())#-------------
@@ -340,12 +391,15 @@ class Shige_Addon_Config(QDialog):
         main_layout.addWidget(tab_widget)
 
         button_layout = QHBoxLayout()
+
+        button_layout.addStretch(1)
+
         button_layout.addWidget(button)
         button_layout.addWidget(button2)
         if RATE_THIS:button_layout.addWidget(button3)
         button_layout.addWidget(button4)
+        button_layout.addWidget(report_button)
 
-        button_layout.addStretch(1)
 
         main_layout.addLayout(button_layout)
 
@@ -359,6 +413,30 @@ class Shige_Addon_Config(QDialog):
         min_size = self.layout().minimumSize()
         # self.resize(min_size.width(), min_size.height())
         self.resize(min_size.width(), WIDGET_HEIGHT)
+
+
+
+    def create_color_button(self, color_attr, label_text, layout:QHBoxLayout):
+        color_button = QPushButton()
+        color_button.setFixedWidth(70)
+
+        def choose_colors():
+            get_color = self.get_color(getattr(self, color_attr))
+            if get_color is not None:
+                setattr(self, color_attr, get_color)
+                color_button.setStyleSheet(f"background-color: {get_color}")
+        color_button.clicked.connect(choose_colors)
+
+        color = getattr(self, color_attr)
+        if color is not None:
+            color_button.setStyleSheet(f"background-color: {color}")
+        color_label = QLabel(label_text)
+        color_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(color_button)
+        h_layout.addWidget(color_label)
+        layout.addLayout(h_layout)
+
 
 
 
@@ -622,6 +700,16 @@ class Shige_Addon_Config(QDialog):
 
         config["show_progress_bar_on_bottom"] = self.show_progress_bar_on_bottom
 
+        config["use_gradation"] = self.use_gradation
+        config["chunk_color_left"] = self.chunk_color_left
+        config["chunk_color_center"] = self.chunk_color_center
+        config["chunk_color_right"] = self.chunk_color_right
+
+        config["show_left_time"] = self.show_left_time
+
+        from ..shige_progress_bar import need_update_config
+        need_update_config()
+
         mw.addonManager.writeConfig(__name__, config)
 
         # --------------show message box-----------------
@@ -631,14 +719,27 @@ class Shige_Addon_Config(QDialog):
         # --------------show message box-----------------
 
 
-def SetProgressbarConfig():
-    config = mw.addonManager.getConfig(__name__)
-    if (config[IS_RATE_THIS]):
-        font_viewer = Shige_Addon_Config()
-        if hasattr(Shige_Addon_Config, 'exec'):font_viewer.exec() # Qt6
-        else:font_viewer.exec_() # Qt5
+def setProgressbarConfig():
+    my_config = Shige_Addon_Config(mw)
+    my_config.show()
+
+def open_config_modal():
+    my_config = Shige_Addon_Config(mw)
+    if hasattr(my_config, 'exec'):
+        my_config.exec()
+    elif hasattr(my_config, 'exec_'):
+        my_config.exec_()
     else:
-        change_log_popup_B()
+        my_config.show()
+
+
+
+    # config = mw.addonManager.getConfig(__name__)
+    # if (config[IS_RATE_THIS]):
+    #     font_viewer = Shige_Addon_Config(mw)
+    #     font_viewer.show()
+    # else:
+    #     change_log_popup_B()
 
 
 # ------- Rate This PopUp ---------------

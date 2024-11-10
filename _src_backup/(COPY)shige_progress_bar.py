@@ -60,8 +60,8 @@ class CustomProgressBar(QProgressBar):
     #     except:contextMenu.exec_(QCursor.pos()) #pyQt5
 
     def perform_action1(self):
-        from .shige_config.progressbar_config import SetProgressbarConfig
-        SetProgressbarConfig()
+        from .shige_config.progressbar_config import setProgressbarConfig
+        setProgressbarConfig()
 
 QProgressBar = CustomProgressBar
 
@@ -121,7 +121,8 @@ orientationHV = Qt.Orientation.Horizontal
 
 invertTF = False # 右から左
 
-dockArea = Qt.DockWidgetArea.TopDockWidgetArea
+# dockArea = Qt.DockWidgetArea.TopDockWidgetArea
+dockArea = Qt.DockWidgetArea.BottomDockWidgetArea
 
 pbStyle = ""
 '''pbStyle options (insert a quoted word above):
@@ -281,6 +282,25 @@ def _dock(pb: QProgressBar) -> QDockWidget:
         mw.setPalette(palette)
     mw.web.setFocus()
     return dock
+
+
+def change_dock_widget_area(dock: QDockWidget, new_dockArea: Qt.DockWidgetArea):
+    current_area = mw.dockWidgetArea(dock)
+
+    if current_area != new_dockArea:
+        mw.removeDockWidget(dock)
+        mw.addDockWidget(new_dockArea, dock)
+
+        existing_widgets = [widget for widget in mw.findChildren(QDockWidget) if mw.dockWidgetArea(widget) == new_dockArea]
+
+        if len(existing_widgets) > 0:
+            mw.setDockNestingEnabled(True)
+
+            if new_dockArea in [Qt.DockWidgetArea.TopDockWidgetArea, Qt.DockWidgetArea.BottomDockWidgetArea]:
+                stack_method = Qt.Orientation.Vertical
+            elif new_dockArea in [Qt.DockWidgetArea.LeftDockWidgetArea, Qt.DockWidgetArea.RightDockWidgetArea]:
+                stack_method = Qt.Orientation.Horizontal
+            mw.splitDockWidget(existing_widgets[0], dock, stack_method)
 
 
 
@@ -459,3 +479,34 @@ def showQuestionCallBack(*args,**kwargs) -> None:
 
 gui_hooks.state_did_change.append(afterStateChangeCallBack)
 gui_hooks.reviewer_did_show_question.append(showQuestionCallBack)
+
+
+def after_change_shige_settings(state: str) -> None:
+    global currDID
+    did_confing_change = didConfigChange()
+
+    if state == "resetRequired":
+        if scrollingBarWhenEditing:
+            setScrollingPB()
+        return
+    elif state == "deckBrowser":
+        if not progressBar_2 or did_confing_change:
+            initPB()
+            updateCountsForAllDecks(True)
+        currDID = None
+    elif state == "profileManager":
+        return
+    else:  # "overview" or "review"
+        initPB()
+        currDID = mw.col.decks.current()['id']
+
+    updateCountsForAllDecks(True)
+    updatePB()
+    hide_progressbar()
+
+def hide_progressbar(*args,**kwargs):
+    global progressBar_2
+    config = mw.addonManager.getConfig(__name__)
+    progressBar_2.setVisible(not config.get("hide_Progressbar", False))
+
+gui_hooks.main_window_did_init.append(hide_progressbar)
